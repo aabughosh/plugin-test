@@ -79,5 +79,8 @@
     "dependencies": {
       "@console/pluginAPI": "*"
     }
+  },
+  "dependencies": {
+    "@rhds/elements": "^1.4.1"
   }
 }

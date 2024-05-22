@@ -14,7 +14,16 @@
       "name": "%plugin__console-plugin-template~Plugin Example%",
       "href": "/example",
       "perspective": "admin",
-      "section": "home"
+      "section": "cnf-cert-section"
+    }
+  },
+  {
+    "type": "console.navigation/section",
+    "properties": {
+      "id": "cnf-cert-section",
+      "insertAfter": "builds",
+      "perspective": "admin",
+      "name": "CNF-CERT-SUITE"
     }
   }
 ]
