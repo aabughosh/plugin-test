@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/gorilla/handlers"
@@ -16,7 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/rest"
 )
 
 var clientset *kubernetes.Clientset
@@ -25,25 +23,16 @@ var clientset *kubernetes.Clientset
 var indexHTML []byte
 
 func main() {
-	// Load Kubernetes configuration from file
-	// Get the value of the KUBECONFIG environment variable
-	// Get the kubeconfig file path
-	kubeConfigFile := filepath.Join(os.Getenv("HOME"), ".kube", "config")
-	if envKubeconfig := os.Getenv("KUBECONFIG"); envKubeconfig != "" {
-		kubeConfigFile = envKubeconfig
-	}
-	fmt.Printf("Using kubeconfig file: %s\n", kubeConfigFile)
-	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigFile)
-	if err != nil {
+	config, err := rest.InClusterConfig()
+    if err != nil {
 		panic(err.Error())
-	}
+    }
 
-	// Create Kubernetes client
-	clientset, err = kubernetes.NewForConfig(config)
-	if err != nil {
+    clientset, err = kubernetes.NewForConfig(config)
+    if err != nil {
 		panic(err.Error())
-	}
-
+    }
+	
 	// Create a new HTTP serve mux
 	router := mux.NewRouter()
 
@@ -65,7 +54,7 @@ func main() {
 	http.Handle("/", corsHandler(router))
 
 	// Start the server
-	if err := http.ListenAndServe(":9002", nil); err != nil {
+	if err := http.ListenAndServeTLS(":8080", "/var/cert/tls.crt", "/var/cert/tls.key", nil); err != nil {
 		// Handle error
 		panic(err.Error())
 	}
