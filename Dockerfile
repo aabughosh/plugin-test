@@ -16,8 +16,8 @@ FROM golang:1.22 AS go-builder
 WORKDIR /opt/app-root
 
 # Copy the Go module files
-COPY ./src/components/go.mod ./
-COPY ./src/components/go.sum ./
+COPY ./go.mod ./
+COPY ./go.sum ./
 
 # Download Go dependencies
 RUN go mod download
@@ -30,11 +30,10 @@ RUN go build -o plugin-backend ./src/components/plugin-backend.go
 
 # Stage 3: Combine frontend and backend
 FROM registry.redhat.io/ubi9/ubi-minimal
-WORKDIR /opt/app-root
 
 COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root/plugin-backend
 COPY --from=web-builder /opt/app-root/dist /opt/app-root/dist
 
 EXPOSE 8080
 
-CMD ["/bin/bash", "-c", "/opt/app-root/plugin-backend"]
+CMD ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/dist"]
