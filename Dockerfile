@@ -16,8 +16,8 @@ FROM golang:1.22 AS go-builder
 WORKDIR /opt/app-root
 
 # Copy the Go module files
-COPY ./src/components/go.mod ./
-COPY ./src/components/go.sum ./
+COPY ./go.mod ./go.mod
+COPY ./go.sum ./go.sum
 
 # Download Go dependencies
 RUN go mod download
@@ -37,4 +37,4 @@ COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
 
 EXPOSE 8080
 
-CMD ["./opt/app-root/plugin-backend"]
+CMD ["/opt/app-root/plugin-backend"]
