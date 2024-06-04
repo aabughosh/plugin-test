@@ -37,4 +37,4 @@ COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
 
 EXPOSE 8080
 
-CMD ["/opt/app-root/plugin-backend"]
+CMD ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist"]
