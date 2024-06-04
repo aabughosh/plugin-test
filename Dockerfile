@@ -34,6 +34,6 @@ FROM registry.redhat.io/ubi9/ubi-minimal
 COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root/plugin-backend
 COPY --from=web-builder /opt/app-root/dist /opt/app-root/dist
 
-EXPOSE 8080
+EXPOSE 9443
 
 CMD ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/dist"]

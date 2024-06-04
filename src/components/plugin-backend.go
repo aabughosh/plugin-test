@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
+	// "github.com/gorilla/handlers"
+	// "github.com/gorilla/mux"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -34,28 +34,19 @@ func main() {
     }
 	
 	// Create a new HTTP serve mux
-	router := mux.NewRouter()
+	// router := mux.NewRouter()
+	http.HandleFunc("/example", healthHandler)
 
 	// Define route to list pods
-	router.HandleFunc("/api/pods", listPods).Methods("GET")
+	// router.HandleFunc("/api/pods", listPods).Methods("GET")
 
 	// Define route to get pod logs
-	router.HandleFunc("/api/logs/{podName}/{containerName}", getPodLogs).Methods("GET")
-
-	// Enable CORS
-	// Enable CORS
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:9000"}),
-		handlers.AllowedMethods([]string{"GET", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type"}),
-	)
-
-	// Wrap your HTTP handler with the CORS middleware
-	http.Handle("/", corsHandler(router))
+	// router.HandleFunc("/api/logs/{podName}/{containerName}", getPodLogs).Methods("GET")
 
 	// Start the server
-	if err := http.ListenAndServeTLS(":8080", "/var/cert/tls.crt", "/var/cert/tls.key", nil); err != nil {
-		// Handle error
+	fmt.Print("Starting server on :9443\n")
+	if err := http.ListenAndServeTLS(":9443", "/var/cert/tls.crt", "/var/cert/tls.key", nil); err != nil {
+		fmt.Printf("Failed to start server: %v\n", err)
 		panic(err.Error())
 	}
 }
@@ -116,4 +107,9 @@ func getPodLogs(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Print("health check worked!")
+	w.Write([]byte("health check worked!\n"))
 }
