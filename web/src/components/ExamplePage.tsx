@@ -14,7 +14,7 @@ const ExamplePage: React.FC = () => {
     fetchPods();
   }, []);
   const fetchPods = () => {
-    axios.get('http://localhost:9002/api/pods')
+    axios.get('https://my-plugin.my-plugin-namespace.svc.cluster.local:9443/api/pods')
       .then(response => {
         const data = response.data;
         const podList = document.getElementById('podListAcc');
@@ -56,7 +56,7 @@ const ExamplePage: React.FC = () => {
   };
 
   const fetchPodLogs = (podName: string, containerName: string) => {
-    axios.get(`http://localhost:9002/api/logs/${podName}/${containerName}`)
+    axios.get(`https://my-plugin.my-plugin-namespace.svc.cluster.local:9443/api/logs/${podName}/${containerName}`)
       .then(response => {
         const data = response.data;
         const logContainer = document.createElement('rh-accordion-panel');

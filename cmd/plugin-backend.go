@@ -8,70 +8,58 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/rest"
 )
 
 var clientset *kubernetes.Clientset
 
-//go:embed ExamplePage.tsx
-var indexHTML []byte
-
 func main() {
-	// Load Kubernetes configuration from file
-	// Get the value of the KUBECONFIG environment variable
-	// Get the kubeconfig file path
-	kubeConfigFile := filepath.Join(os.Getenv("HOME"), ".kube", "config")
-	if envKubeconfig := os.Getenv("KUBECONFIG"); envKubeconfig != "" {
-		kubeConfigFile = envKubeconfig
-	}
-	fmt.Printf("Using kubeconfig file: %s\n", kubeConfigFile)
-	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigFile)
-	if err != nil {
+	config, err := rest.InClusterConfig()
+    if err != nil {
 		panic(err.Error())
-	}
+    }
 
-	// Create Kubernetes client
-	clientset, err = kubernetes.NewForConfig(config)
-	if err != nil {
+    clientset, err = kubernetes.NewForConfig(config)
+    if err != nil {
 		panic(err.Error())
-	}
-
-	// Create a new HTTP serve mux
-	router := mux.NewRouter()
-
-	// Define route to list pods
-	router.HandleFunc("/api/pods", listPods).Methods("GET")
-
-	// Define route to get pod logs
-	router.HandleFunc("/api/logs/{podName}/{containerName}", getPodLogs).Methods("GET")
-
-	// Enable CORS
-	// Enable CORS
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:9000"}),
-		handlers.AllowedMethods([]string{"GET", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type"}),
-	)
-
-	// Wrap your HTTP handler with the CORS middleware
-	http.Handle("/", corsHandler(router))
+    }
+	
+	http.HandleFunc("/example", healthHandler)
+	http.HandleFunc("/plugin-manifest.json", manifesthHandler)
+	http.HandleFunc("/api/pods", listPods)
+	http.HandleFunc("/api/logs/{podName}/{containerName}", getPodLogs)
 
 	// Start the server
-	if err := http.ListenAndServe(":9002", nil); err != nil {
-		// Handle error
+	fmt.Print("Starting server on :9443\n")
+	if err := http.ListenAndServeTLS(":9443", "/var/cert/tls.crt", "/var/cert/tls.key", nil); err != nil {
+		fmt.Printf("Failed to start server: %v\n", err)
 		panic(err.Error())
 	}
 }
 
-// Handler function to serve ProxyTestPage.ts
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Print("health check worked!\n")
+	w.Write([]byte("health check worked!\n"))
+}
+
+func manifesthHandler(w http.ResponseWriter, r *http.Request) {
+	manifestData, err := os.ReadFile("/opt/app-root/web/dist/plugin-manifest.json")
+	if err != nil {
+		fmt.Errorf("cannot read base manifest file: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	// w.Header().Set("Content-Type", "application/json")
+	// w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	// w.Header().Set("Expires", "0")
+
+	w.Write(manifestData)
+}
 
 func listPods(w http.ResponseWriter, r *http.Request) {
 	fmt.Print("called get logs")
