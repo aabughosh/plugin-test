@@ -10,7 +10,7 @@
     "strict": false,
     "noUnusedLocals": true
   },
-  "include": ["src"],
+  "include": ["./src/components"],
   "exclude": ["node_modules"],
   "ts-node": {
     "files": true,

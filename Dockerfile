@@ -6,10 +6,10 @@ USER root
 RUN command -v yarn || npm i -g yarn
 WORKDIR /opt/app-root
 
-COPY . .
+COPY web web
 
 # Install dependencies and build frontend
-RUN yarn install && yarn build
+RUN cd web && yarn install && yarn build
 
 # Stage 2: Build the Go backend
 FROM golang:1.22 AS go-builder
@@ -23,18 +23,18 @@ COPY ./src/components/go.sum ./
 RUN go mod download
 
 # Copy the rest of the backend files
-COPY ./ ./
+COPY ./cmd/plugin-backend.go ./cmd/plugin-backend.go
 
 # Build the backend
-RUN go build -o plugin-backend ./src/components/plugin-backend.go
+RUN go build -o plugin-backend ./cmd/plugin-backend.go
 
 # Stage 3: Combine frontend and backend
 FROM registry.redhat.io/ubi9/ubi-minimal
 WORKDIR /opt/app-root
 
 COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root/plugin-backend
-COPY --from=web-builder /opt/app-root/dist /opt/app-root/dist
+COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
 
 EXPOSE 8080
 
-CMD ["/bin/bash", "-c", "/opt/app-root/plugin-backend"]
+CMD ["./opt/app-root/plugin-backend"]

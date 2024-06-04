@@ -23,7 +23,7 @@
       "id": "cnf-cert-section",
       "insertAfter": "builds",
       "perspective": "admin",
-      "name": "CNF-CERT-SUITE"
+      "name": "Cnf Certification Suites"
     }
   }
 ]

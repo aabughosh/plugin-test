@@ -1,6 +1,6 @@
 ---
 plugin:
-  name: ""
+  name: "cnf-certsuite-plugin"
   description: ""
   image: ""
   imagePullPolicy: IfNotPresent
