@@ -5,12 +5,15 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+
 	"io"
 	"net/http"
 	"os"
+
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	"github.com/gorilla/mux"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -29,14 +32,16 @@ func main() {
 		panic(err.Error())
     }
 	
-	http.HandleFunc("/example", healthHandler)
-	http.HandleFunc("/plugin-manifest.json", manifesthHandler)
-	http.HandleFunc("/api/pods", listPods)
-	http.HandleFunc("/api/logs/{podName}/{containerName}", getPodLogs)
+	route := mux.NewRouter()
+
+	route.HandleFunc("/example", healthHandler)
+	route.HandleFunc("/plugin-manifest.json", manifesthHandler)
+	route.HandleFunc("/api/pods", listPods)
+	route.HandleFunc("/api/logs/{podName}/{containerName}", getPodLogs)
 
 	// Start the server
 	fmt.Print("Starting server on :9443\n")
-	if err := http.ListenAndServeTLS(":9443", "/var/cert/tls.crt", "/var/cert/tls.key", nil); err != nil {
+	if err := http.ListenAndServeTLS(":9443", "/var/cert/tls.crt", "/var/cert/tls.key", route); err != nil {
 		fmt.Printf("Failed to start server: %v\n", err)
 		panic(err.Error())
 	}
