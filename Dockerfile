@@ -6,10 +6,10 @@ USER root
 RUN command -v yarn || npm i -g yarn
 WORKDIR /opt/app-root
 
-COPY web web
+COPY web/ web/
 
 # Install dependencies and build frontend
-RUN cd web && yarn install && yarn build
+RUN yarn cache clean && cd web && yarn install && yarn build
 
 # Stage 2: Build the Go backend
 FROM golang:1.22 AS go-builder

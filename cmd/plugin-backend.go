@@ -12,8 +12,8 @@ import (
 
 	"strings"
 
-	corev1 "k8s.io/api/core/v1"
 	"github.com/gorilla/mux"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -23,21 +23,23 @@ var clientset *kubernetes.Clientset
 
 func main() {
 	config, err := rest.InClusterConfig()
-    if err != nil {
+	if err != nil {
 		panic(err.Error())
-    }
+	}
 
-    clientset, err = kubernetes.NewForConfig(config)
-    if err != nil {
+	clientset, err = kubernetes.NewForConfig(config)
+	if err != nil {
 		panic(err.Error())
-    }
-	
+	}
+
 	route := mux.NewRouter()
+	staticPathArg := "opt/app-root/web/dist"
 
 	route.HandleFunc("/example", healthHandler)
 	route.HandleFunc("/plugin-manifest.json", manifesthHandler)
-	route.HandleFunc("/api/pods", listPods)
-	route.HandleFunc("/api/logs/{podName}/{containerName}", getPodLogs)
+	route.PathPrefix("/api/pods").HandlerFunc(listPods)
+	route.PathPrefix("/api/logs/{podName}/{containerName}").HandlerFunc(getPodLogs)
+	route.PathPrefix("/").Handler(filesHandler(http.Dir(staticPathArg)))
 
 	// Start the server
 	fmt.Print("Starting server on :9443\n")
@@ -46,7 +48,17 @@ func main() {
 		panic(err.Error())
 	}
 }
+func filesHandler(root http.FileSystem) http.Handler {
+	fileServer := http.FileServer(root)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+		w.Header().Set("Content-Type", "text/javascript")
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Expires", "0")
+
+		fileServer.ServeHTTP(w, r)
+	})
+}
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Print("health check worked!\n")
 	w.Write([]byte("health check worked!\n"))
