@@ -26,7 +26,7 @@ if ((success)); then
 else
     cat << EOF
     dev.env is not formatted correctly, please add the the correct values for your cluster.
-    OC_PLUGIN_NAME=my-plugin
+    OC_PLUGIN_NAME=cnf-certsuite-plugin
     OC_URL=https://api.example.com:6443
     OC_USER=kubeadmin
     OC_PASS=<password>
